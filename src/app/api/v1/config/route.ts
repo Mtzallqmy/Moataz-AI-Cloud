@@ -1,0 +1,2 @@
+import { createClient } from '@supabase/supabase-js';import { errorResponse } from '@/lib/api/errors';
+export async function GET(){try{const client=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await client.from('app_config').select('key,value,updated_at').eq('is_public',true);if(error)throw error;return Response.json({config:Object.fromEntries((data??[]).map((x:any)=>[x.key,x.value]))})}catch(e){return errorResponse(e)}}

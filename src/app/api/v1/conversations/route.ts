@@ -1,0 +1,4 @@
+import { requireApiContext } from '@/lib/auth/api-context';import { errorResponse } from '@/lib/api/errors';import { z } from 'zod';
+const schema=z.object({title:z.string().max(200).optional(),sync_enabled:z.boolean().default(true)});
+export async function GET(req:Request){try{const {user,client}=await requireApiContext(req);const {data}=await client.from('conversations').select('*').eq('user_id',user.id).order('updated_at',{ascending:false});return Response.json({conversations:data??[]})}catch(e){return errorResponse(e)}}
+export async function POST(req:Request){try{const {user,client}=await requireApiContext(req),body=schema.parse(await req.json());const {data,error}=await client.from('conversations').insert({user_id:user.id,...body}).select().single();if(error)throw error;return Response.json(data,{status:201})}catch(e){return errorResponse(e)}}

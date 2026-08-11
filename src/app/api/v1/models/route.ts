@@ -1,0 +1,2 @@
+import { requireApiContext } from '@/lib/auth/api-context';import { errorResponse } from '@/lib/api/errors';
+export async function GET(req:Request){try{const {client}=await requireApiContext(req);const provider=new URL(req.url).searchParams.get('provider');const {data,error}=await client.rpc('api_allowed_models',{p_provider_id:provider||null});if(error)throw error;return Response.json({models:data??[]})}catch(e){return errorResponse(e)}}
