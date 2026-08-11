@@ -1,0 +1,93 @@
+openapi: 3.1.0
+info:
+  title: Moataz AI Cloud API
+  version: 1.0.0
+servers:
+  - url: https://api.moataz.ai/api/v1
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          required: [code, message, details]
+          properties:
+            code: {type: string}
+            message: {type: string}
+            details: {type: object}
+paths:
+  /config:
+    get:
+      summary: Public remote app config
+      responses: {'200': {description: Public configuration}}
+  /me:
+    get:
+      summary: Current user and plan
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Account summary}, '401': {description: Authentication required}}
+  /dashboard:
+    get:
+      summary: Aggregated Android dashboard
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Dashboard}}
+  /usage:
+    get:
+      summary: Current user's usage
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Usage summary}}
+  /providers:
+    get:
+      summary: Allowed managed providers
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Providers}}
+  /models:
+    get:
+      summary: Allowed models
+      security: [{bearerAuth: []}]
+      parameters:
+        - in: query
+          name: provider
+          schema: {type: string, format: uuid}
+      responses: {'200': {description: Models}}
+  /chat:
+    post:
+      summary: Managed non-streaming chat
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
+      responses: {'200': {description: Chat completion}, '429': {description: Rate/quota exceeded}}
+  /chat/stream:
+    post:
+      summary: Managed SSE chat
+      security: [{bearerAuth: []}]
+      requestBody: {required: true, content: {application/json: {schema: {type: object}}}}
+      responses: {'200': {description: SSE stream, content: {text/event-stream: {}}}}
+  /files/upload-url:
+    post:
+      summary: Create private signed upload URL
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Signed upload target}}
+  /conversations:
+    get:
+      summary: List owned cloud conversations
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Conversations}}
+    post:
+      summary: Create cloud conversation
+      security: [{bearerAuth: []}]
+      responses: {'201': {description: Conversation created}}
+  /conversations/{id}:
+    parameters: [{in: path, name: id, required: true, schema: {type: string, format: uuid}}]
+    get:
+      summary: Read owned conversation
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Conversation}, '404': {description: Not found}}
+    delete:
+      summary: Delete owned conversation
+      security: [{bearerAuth: []}]
+      responses: {'204': {description: Deleted}}
