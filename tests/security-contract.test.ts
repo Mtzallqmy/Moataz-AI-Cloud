@@ -14,5 +14,5 @@ describe('security contracts',()=>{
  it('usage is finalized by trusted RPC after managed chat',()=>{expect(chat).toContain("rpc('finalize_managed_usage'");expect(m2).toContain('where id=p_usage_id and user_id=(select auth.uid())')});
  it('credential failover is bounded',()=>{expect(gateway).toContain('Math.min(targets.length,3)');expect(gateway).toContain('retryCredential')});
  it('file paths are owner-prefixed and quota checked',()=>{expect(upload).toContain('`${user.id}/');expect(upload).toContain("ApiError('STORAGE_LIMIT'");expect(m1).toContain('(storage.foldername(name))[1]=(select auth.uid())::text')});
- it('managed chat reserves before gateway execution',()=>{expect(chat.indexOf("rpc('reserve_managed_request'")).toBeLessThan(chat.indexOf('executeManagedChat'))});
+ it('managed chat reserves before gateway execution',()=>{expect(chat.indexOf("rpc('reserve_managed_request'")).toBeLessThan(chat.indexOf('await executeManagedChat'))});
 });
