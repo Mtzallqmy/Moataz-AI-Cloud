@@ -1,0 +1,2 @@
+import { redirect } from 'next/navigation';import { supabaseServer } from '@/lib/supabase/server';
+export async function requireAdmin(){const client=await supabaseServer();const {data}=await client.auth.getUser();if(!data.user)redirect('/admin/login');const {data:admin}=await client.from('admin_users').select('user_id').eq('user_id',data.user.id).maybeSingle();if(!admin)redirect('/admin/login?error=forbidden');return {user:data.user,client}}

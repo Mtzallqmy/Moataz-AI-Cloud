@@ -1,0 +1,2 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+export async function audit(client:SupabaseClient,req:Request,adminId:string,action:string,targetType?:string,targetId?:string,before?:unknown,after?:unknown){await client.from('admin_audit_logs').insert({admin_user_id:adminId,action,target_type:targetType,target_id:targetId,before_data:before??null,after_data:after??null,user_agent:req.headers.get('user-agent'),ip:(req.headers.get('x-forwarded-for')||'').split(',')[0]||null})}

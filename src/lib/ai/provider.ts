@@ -1,0 +1,3 @@
+import { ApiError } from '@/lib/api/errors';
+export type ChatInput={model:string;messages:Array<{role:string;content:unknown}>;stream?:boolean;temperature?:number;max_tokens?:number};
+export async function callOpenAICompatible(baseUrl:string,apiKey:string,remoteModelId:string,input:ChatInput){const res=await fetch(`${baseUrl.replace(/\/$/,'')}/chat/completions`,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${apiKey}`},body:JSON.stringify({...input,model:remoteModelId})});if(!res.ok)throw new ApiError('PROVIDER_ERROR',`Provider returned ${res.status}`,502,{provider_status:res.status});return res}
