@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
   title: Moataz AI Cloud API
-  version: 1.0.0
+  version: 1.1.0
 servers:
-  - url: https://api.moataz.ai/api/v1
+  - url: https://moataz-ai-cloud.vercel.app/api/v1
 components:
   securitySchemes:
     bearerAuth:
@@ -21,6 +21,21 @@ components:
             code: {type: string}
             message: {type: string}
             details: {type: object}
+    CredentialMetadata:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        provider_id: {type: string, format: uuid}
+        label: {type: string}
+        source: {type: string, enum: [database, environment]}
+        key_mask: {type: [string, 'null'], description: Masked display only; plaintext and ciphertext are never returned.}
+        secret_ref: {type: [string, 'null'], description: Legacy environment-variable name only.}
+        enabled: {type: boolean}
+        priority: {type: integer}
+        health_status: {type: string}
+        last_checked_at: {type: [string, 'null'], format: date-time}
+        last_used_at: {type: [string, 'null'], format: date-time}
+        failure_count: {type: integer}
 paths:
   /config:
     get:
@@ -91,3 +106,68 @@ paths:
       summary: Delete owned conversation
       security: [{bearerAuth: []}]
       responses: {'204': {description: Deleted}}
+  /admin/providers:
+    get:
+      summary: Admin provider list
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Provider metadata and credential counts}, '403': {description: Admin required}}
+    post:
+      summary: Create OpenAI-compatible provider
+      security: [{bearerAuth: []}]
+      responses: {'201': {description: Provider created}, '409': {description: Duplicate slug}, '422': {description: Validation error}}
+    patch:
+      summary: Update provider, failover and allowed plans
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Provider updated}}
+    delete:
+      summary: Delete provider with no usage history
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Deleted}, '409': {description: Disable provider instead when usage history exists}}
+  /admin/credentials:
+    get:
+      summary: List credential metadata only
+      description: Never returns plaintext API keys or encrypted_api_key.
+      security: [{bearerAuth: []}]
+      responses:
+        '200':
+          description: Credential metadata
+          headers:
+            Cache-Control: {schema: {type: string}, description: no-store}
+    post:
+      summary: Add API credential
+      description: Database source is the default. API key is accepted once and encrypted server-side using AES-256-GCM.
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider_id, label, source]
+              properties:
+                provider_id: {type: string, format: uuid}
+                label: {type: string}
+                source: {type: string, enum: [database, environment], default: database}
+                api_key: {type: string, writeOnly: true}
+                secret_ref: {type: string, description: Legacy environment source only.}
+                enabled: {type: boolean, default: true}
+                priority: {type: integer, default: 100}
+      responses: {'201': {description: Credential metadata only}, '422': {description: Validation error}}
+  /admin/credentials/{id}:
+    parameters: [{in: path, name: id, required: true, schema: {type: string, format: uuid}}]
+    patch:
+      summary: Update, enable/disable, reprioritize or replace a credential
+      description: For rotation send a new api_key. The old key is never returned.
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Updated credential metadata}}
+    delete:
+      summary: Delete a credential
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Deleted; may include warning if it was the last active credential}}
+  /admin/credentials/{id}/test:
+    parameters: [{in: path, name: id, required: true, schema: {type: string, format: uuid}}]
+    post:
+      summary: Test credential server-side
+      description: Uses the provider /models endpoint where supported. Never exposes the API key or provider response body.
+      security: [{bearerAuth: []}]
+      responses: {'200': {description: Connection test result}, '401': {description: Authentication failed}, '429': {description: Provider rate limited}}
