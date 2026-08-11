@@ -1,0 +1,2 @@
+import {describe,it,expect} from 'vitest';import {ApiError,errorResponse} from '../src/lib/api/errors';
+describe('API error response',()=>{it('uses stable Android error envelope',async()=>{const r=errorResponse(new ApiError('QUOTA_EXCEEDED','Quota exceeded',429,{scope:'daily'}));expect(r.status).toBe(429);expect(await r.json()).toEqual({error:{code:'QUOTA_EXCEEDED',message:'Quota exceeded',details:{scope:'daily'}}})})});
