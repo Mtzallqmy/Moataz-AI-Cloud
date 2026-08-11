@@ -14,5 +14,5 @@ describe('security contracts',()=>{
  it('provider and model disabled checks are enforced in database',()=>{expect(m2).toContain("raise exception 'PROVIDER_DISABLED'");expect(m2).toContain("raise exception 'MODEL_DISABLED'")});
  it('usage is finalized by trusted RPC after managed chat',()=>{expect(chat).toContain("rpc('finalize_managed_usage'");expect(m2).toContain('where id=p_usage_id and user_id=(select auth.uid())')});
  it('file paths are owner-prefixed and quota checked',()=>{expect(upload).toContain('`${user.id}/');expect(upload).toContain("ApiError('STORAGE_LIMIT'");expect(m1).toContain('(storage.foldername(name))[1]=(select auth.uid())::text')});
- it('managed chat reserves before provider call',()=>{expect(chat.indexOf("rpc('reserve_managed_request'")).toBeLessThan(chat.indexOf('callOpenAICompatible'))});
+ it('managed chat reserves before provider call',()=>{expect(chat.indexOf("rpc('reserve_managed_request'")).toBeLessThan(chat.indexOf('await callOpenAICompatible'))});
 });
