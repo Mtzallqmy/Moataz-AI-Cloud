@@ -35,7 +35,7 @@ Android source code does not belong in this repository. BYOK remains an Android-
 
 1. `npm install`
 2. Copy `.env.example` to `.env.local`.
-3. Fill the Supabase URL, publishable key and `BACKEND_INTERNAL_SECRET` (server-only).
+3. Fill the Supabase URL, publishable key and `MOATAZ_TRUST_TOKEN` (server-only).
 4. Link the Supabase CLI and run migrations from `supabase/migrations/`.
 5. `npm run dev`
 
@@ -102,7 +102,7 @@ Required application variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `BACKEND_INTERNAL_SECRET` — long random server-only value whose bcrypt hash is stored in the private database schema
+- `MOATAZ_TRUST_TOKEN` — long random server-only value; only a one-way hash is stored in the private database schema
 - `APP_BASE_URL`
 - `ADMIN_EMAIL`
 
@@ -115,7 +115,7 @@ Configure `api.moataz.ai` and `admin.moataz.ai` as domains on the same Next.js p
 - RLS enabled on every public application table.
 - User data policies use `auth.uid()` ownership.
 - No provider secret is stored in PostgreSQL or returned by an endpoint.
-- No Supabase elevated/service-role key is required by the application runtime; privileged managed-AI RPCs require the server-only backend trust secret in addition to the authenticated user JWT.
+- No Supabase elevated/service-role key is required by the application runtime; privileged managed-AI RPCs require the server-only trust token in addition to the authenticated user JWT.
 - Admin checks happen server-side against `admin_users`.
 - Provider/model disable flags are re-checked for every managed request.
 - Sensitive admin changes are written to `admin_audit_logs`.
