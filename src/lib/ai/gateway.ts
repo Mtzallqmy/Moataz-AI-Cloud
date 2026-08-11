@@ -23,9 +23,10 @@ export async function executeManagedChat(client:SupabaseClient,providerId:string
       await record(client,target,true,response.status,'OK',Date.now()-started,trust);
       return {response,target};
     }catch(error){
-      last=error;const providerError=error instanceof ProviderRequestError?error:null;
-      await record(client,target,false,providerError?.status??500,providerError?.kind??'CONFIGURATION_ERROR',Date.now()-started,trust).catch(()=>{});
-      if(!providerError||!providerError.retryCredential||i===attempts-1)break;
+      last=error;const providerError=error instanceof ProviderRequestError?error:null;const configurationError=error instanceof ApiError&&error.code==='CONFIGURATION_ERROR';
+      await record(client,target,false,providerError?.status??500,providerError?.kind??(configurationError?'CONFIGURATION_ERROR':'PROVIDER_ERROR'),Date.now()-started,trust).catch(()=>{});
+      const retryable=providerError?.retryCredential||configurationError;
+      if(!retryable||i===attempts-1)break;
     }
   }
   throw providerErrorToApi(last);
