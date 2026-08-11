@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { requireAdminRequest } from '@/lib/admin/api-guard';
 import { audit } from '@/lib/admin/audit';
 import { ApiError,errorResponse } from '@/lib/api/errors';
@@ -7,7 +8,7 @@ import { z } from 'zod';
 const schema=z.object({label:z.string().trim().min(1).max(120).optional(),priority:z.number().int().min(0).max(100000).optional(),enabled:z.boolean().optional(),api_key:z.string().trim().min(1).max(20000).optional(),secret_ref:z.string().regex(/^[A-Z][A-Z0-9_]*$/).optional()});
 const noStore={'cache-control':'no-store, private'};
 function trust(){const value=process.env.MOATAZ_TRUST_TOKEN;if(!value)throw new ApiError('CONFIGURATION_ERROR','Backend trust token is not configured',500);return value}
-async function metadata(client:ReturnType<Awaited<ReturnType<typeof requireAdminRequest>>['client']['from']> extends never?never:any,id:string){const {data,error}=await client.rpc('admin_list_provider_credentials_metadata',{p_provider_id:null});if(error)throw error;const row=(data??[]).find((x:{id:string})=>x.id===id);if(!row)throw new ApiError('NOT_FOUND','Credential not found',404);return row}
+async function metadata(client:SupabaseClient,id:string){const {data,error}=await client.rpc('admin_list_provider_credentials_metadata',{p_provider_id:null});if(error)throw error;const row=(data??[]).find((x:{id:string})=>x.id===id);if(!row)throw new ApiError('NOT_FOUND','Credential not found',404);return row}
 
 export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){try{
   const {id}=await params;if(!z.string().uuid().safeParse(id).success)throw new ApiError('VALIDATION_ERROR','Invalid credential id',422);
